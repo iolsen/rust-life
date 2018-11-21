@@ -35,12 +35,12 @@ impl Board {
                 let mut found = false;
                 for cell in self.cells.iter() {
                     if cell.x == x && cell.y == y {
-                        print!(" X ");
+                        print!("⚪️");
                         found = true;
                         break;
                     }
                 }
-                if !found { print!(" • ") }
+                if !found { print!("⚫️") }
             }
             print!("\n");
         }
