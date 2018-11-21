@@ -1,11 +1,22 @@
+extern crate ncurses;
+use ncurses::*;
+
 mod board;
 use board::Board;
 
 fn main() {
-    // let cell = board::Cell::create(0,0);
-    // cell.println();
-    // cell.kill();
+
+    initscr();
+    getch();
 
     let board = Board::init(10, 10);
-    board.print();
+
+    loop {
+        board.print();
+        let key = getch();
+        if key == ('q' as i32) { break }
+        board.tick();
+    }
+
+    endwin();
 }

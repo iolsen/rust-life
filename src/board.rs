@@ -29,21 +29,71 @@ impl Board {
         Board { size, cells }
     }
 
+    pub fn tick(&self) {
+        let mut marked_for_death: Vec<&Cell> = Vec::new();
+        for cell in self.cells.iter() {
+            let live_neighbor_count = self.living_neighbor_count(cell);
+            if live_neighbor_count < 2 || live_neighbor_count > 3 {
+                marked_for_death.push(cell);
+            }
+        }
+    }
+
     pub fn print(&self) {
         for y in (0..self.size).rev() {
             for x in 0..self.size {
-                let mut found = false;
-                for cell in self.cells.iter() {
-                    if cell.x == x && cell.y == y {
-                        print!("⚪️");
-                        found = true;
-                        break;
-                    }
+                if self.life_at(x, y) {
+                    print!("⚪️");
+                } else {
+                    print!("⚫️");
                 }
-                if !found { print!("⚫️") }
             }
-            print!("\n");
+            print!("\r\n");
         }
+    }
+
+    fn life_at(&self, x: u16, y: u16) -> bool {
+        for cell in self.cells.iter() {
+            if cell.x == x && cell.y == y {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn neighbors_of(&self, cell: &Cell) -> Vec<Cell> {
+        let mut neighbors: Vec<Cell> = Vec::new();
+        let x = cell.x;
+        let y = cell.y;
+
+        // cells to the left
+        if x > 0 {
+            let n_x = x-1;
+            if y < self.size - 1 { neighbors.push(Cell {x:n_x, y:y+1}) } // above left
+            neighbors.push(Cell {x:n_x, y}); // left
+            if y > 0 { neighbors.push(Cell {x:n_x, y:y-1}) } // below left
+        }
+
+        if y < self.size - 1 { neighbors.push(Cell {x, y:y+1}) } // above
+        if y > 0 { neighbors.push(Cell {x, y:y-1}) } // below
+
+        // cells to the right
+        if x < self.size - 1 {
+            let n_x = x+1;
+            if y < self.size - 1 { neighbors.push(Cell {x:n_x, y:y+1}) } // above right
+            neighbors.push(Cell {x:n_x, y}); // left
+            if y > 0 { neighbors.push(Cell {x:n_x, y:y-1}) } // below right
+        }
+        neighbors
+    }
+
+    fn living_neighbor_count(&self, cell: &Cell) -> u8 {
+        let mut count = 0;
+        let neighbors = self.neighbors_of(cell);
+        for cell in neighbors.iter() {
+            if self.life_at(cell.x, cell.y) { count += 1 }
+        }
+        count
     }
 }
 
@@ -56,8 +106,6 @@ pub struct Cell {
 impl Cell {
     pub fn create(x: u16, y: u16) -> Cell {
         Cell {x,y}
-    }
-    pub fn _kill(self) {
     }
     pub fn _println(&self) {
         println!("{:?}", self);
