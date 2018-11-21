@@ -1,9 +1,10 @@
 extern crate rand;
 use self::rand::seq::SliceRandom;
+use std::collections::HashMap;
 
 pub struct Board {
     size: u16,
-    cells: Vec<Cell>
+    cells: HashMap<String, Cell>
 }
 
 impl Board {
@@ -18,19 +19,19 @@ impl Board {
         let initial_positions: Vec<&u16> =
             all_positions.choose_multiple(&mut rng, count as usize).collect();
 
-        let mut cells: Vec<Cell> = Vec::new();
+        let mut cells: HashMap<String, Cell> = HashMap::new();
         for position in initial_positions.iter()  {
             let x = *position % 10;
             let y = *position / 10;
             let cell = Cell { x, y };
-            cells.push(cell);
+            cells.insert(cell.hash_key(), cell);
         }
         Board { size, cells }
     }
 
     pub fn tick(&self) {
         let mut marked_for_death: Vec<&Cell> = Vec::new();
-        for cell in self.cells.iter() {
+        for cell in self.cells.values() {
             let live_neighbor_count = self.living_neighbor_count(cell);
             if live_neighbor_count < 2 || live_neighbor_count > 3 {
                 marked_for_death.push(cell);
@@ -41,7 +42,7 @@ impl Board {
     pub fn print(&self) {
         for y in (0..self.size).rev() {
             for x in 0..self.size {
-                if self.life_at(x, y) {
+                if self.life_at(&Cell {x, y}) {
                     print!("⚪️");
                 } else {
                     print!("⚫️");
@@ -49,15 +50,17 @@ impl Board {
             }
             print!("\r\n");
         }
+        for cell in self.cells.values() {
+            cell.println(self);
+        }
     }
 
-    fn life_at(&self, x: u16, y: u16) -> bool {
-        for cell in self.cells.iter() {
-            if cell.x == x && cell.y == y {
-                return true;
-            }
+    fn life_at(&self, cell: &Cell) -> bool {
+        if self.cells.contains_key(&cell.hash_key()) {
+            true
+        } else {
+            false
         }
-        false
     }
 
     fn neighbors_of(&self, cell: &Cell) -> Vec<Cell> {
@@ -90,7 +93,7 @@ impl Board {
         let mut count = 0;
         let neighbors = self.neighbors_of(cell);
         for cell in neighbors.iter() {
-            if self.life_at(cell.x, cell.y) { count += 1 }
+            if self.life_at(cell) { count += 1 }
         }
         count
     }
@@ -100,4 +103,18 @@ impl Board {
 pub struct Cell {
     x: u16,
     y: u16
+}
+
+impl Cell {
+    pub fn hash_key(&self) -> String {
+        let mut key = String::with_capacity(10);
+        key.push_str(&self.x.to_string());
+        key.push(',');
+        key.push_str(&self.y.to_string());
+        key
+    }
+
+    pub fn println(&self, board: &Board) {
+        print! ("{:?} living neighbors: {}\r\n", self, board.living_neighbor_count(self))
+    }
 }
