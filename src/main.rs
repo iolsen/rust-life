@@ -5,17 +5,18 @@ mod board;
 use board::Board;
 
 fn main() {
-
     initscr();
+    noecho();
+
     getch();
 
-    let board = Board::init(10, 10);
+    let mut board = Board::init(40, 200);
 
     loop {
         board.print();
         let key = getch();
         if key == ('q' as i32) { break }
-        board.tick();
+        board = board.tick();
     }
 
     endwin();

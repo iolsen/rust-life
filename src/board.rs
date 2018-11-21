@@ -1,5 +1,6 @@
 extern crate rand;
 use self::rand::seq::SliceRandom;
+
 use std::collections::HashMap;
 
 pub struct Board {
@@ -21,21 +22,34 @@ impl Board {
 
         let mut cells: HashMap<String, Cell> = HashMap::new();
         for position in initial_positions.iter()  {
-            let x = *position % 10;
-            let y = *position / 10;
+            let x = *position % size;
+            let y = *position / size;
             let cell = Cell { x, y };
             cells.insert(cell.hash_key(), cell);
         }
         Board { size, cells }
     }
 
-    pub fn tick(&self) {
-        let mut marked_for_death: Vec<&Cell> = Vec::new();
-        for cell in self.cells.values() {
-            let live_neighbor_count = self.living_neighbor_count(cell);
-            if live_neighbor_count < 2 || live_neighbor_count > 3 {
-                marked_for_death.push(cell);
+    pub fn tick(self) -> Board {
+        let mut new_cells: HashMap<String, Cell> = HashMap::new();
+
+        for y in (0..self.size).rev() {
+            for x in 0..self.size {
+                let cell = Cell {x, y};
+                let live_neighbor_count = self.living_neighbor_count(&cell);
+                // live cells continue living with 2 or 3 neighbors
+                // dead cells come alive with 3 neighbors
+                if live_neighbor_count == 2 && self.life_at(&cell) {
+                    new_cells.insert(cell.hash_key(), cell);
+                } else if live_neighbor_count == 3 {
+                    new_cells.insert(cell.hash_key(), cell);
+                }
             }
+        }
+
+        Board {
+            size: self.size,
+            cells: new_cells
         }
     }
 
@@ -50,17 +64,14 @@ impl Board {
             }
             print!("\r\n");
         }
-        for cell in self.cells.values() {
-            cell.println(self);
-        }
+        print!("\r\n");
+        // for cell in self.cells.values() {
+        //     cell._println(self);
+        // }
     }
 
     fn life_at(&self, cell: &Cell) -> bool {
-        if self.cells.contains_key(&cell.hash_key()) {
-            true
-        } else {
-            false
-        }
+        self.cells.contains_key(&cell.hash_key())
     }
 
     fn neighbors_of(&self, cell: &Cell) -> Vec<Cell> {
@@ -83,7 +94,7 @@ impl Board {
         if x < self.size - 1 {
             let n_x = x+1;
             if y < self.size - 1 { neighbors.push(Cell {x:n_x, y:y+1}) } // above right
-            neighbors.push(Cell {x:n_x, y}); // left
+            neighbors.push(Cell {x:n_x, y}); // right
             if y > 0 { neighbors.push(Cell {x:n_x, y:y-1}) } // below right
         }
         neighbors
@@ -114,7 +125,7 @@ impl Cell {
         key
     }
 
-    pub fn println(&self, board: &Board) {
+    pub fn _println(&self, board: &Board) {
         print! ("{:?} living neighbors: {}\r\n", self, board.living_neighbor_count(self))
     }
 }
