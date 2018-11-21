@@ -1,7 +1,6 @@
 extern crate rand;
 use self::rand::seq::SliceRandom;
 
-#[derive(Debug)]
 pub struct Board {
     size: u16,
     cells: Vec<Cell>
@@ -23,7 +22,7 @@ impl Board {
         for position in initial_positions.iter()  {
             let x = *position % 10;
             let y = *position / 10;
-            let cell = Cell::create(x, y);
+            let cell = Cell { x, y };
             cells.push(cell);
         }
         Board { size, cells }
@@ -101,13 +100,4 @@ impl Board {
 pub struct Cell {
     x: u16,
     y: u16
-}
-
-impl Cell {
-    pub fn create(x: u16, y: u16) -> Cell {
-        Cell {x,y}
-    }
-    pub fn _println(&self) {
-        println!("{:?}", self);
-    }
 }
