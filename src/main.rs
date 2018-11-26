@@ -1,23 +1,17 @@
-extern crate ncurses;
-use ncurses::*;
+extern crate getch;
+use getch::Getch;
 
 mod board;
 use board::Board;
 
 fn main() {
-    initscr();
-    noecho();
-
-    getch();
-
     let mut board = Board::init(40, 200);
+    let getch = Getch::new();
 
     loop {
         board.print();
-        let key = getch();
-        if key == ('q' as i32) { break }
+        let key = getch.getch().expect("Failed to read a key");
+        if key == ('q' as u8) { break }
         board = board.tick();
     }
-
-    endwin();
 }

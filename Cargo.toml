@@ -5,4 +5,4 @@ authors = ["Ian Olsen <ian.olsen@gmail.com>"]
 
 [dependencies]
 rand = "0.6.0"
-ncurses = "5.0.0"
+getch = "0.2.0"
